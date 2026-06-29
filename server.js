@@ -3,8 +3,8 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
-const http = require("http"); // <-- Needed for Socket.io
-const { Server } = require("socket.io"); // <-- Needed for Socket.io
+const http = require("http");
+const { Server } = require("socket.io");
 
 // Import Controllers & Middleware
 const authRoutes = require("./routes/authRoutes"); 
@@ -19,21 +19,26 @@ connectDB();
 
 const app = express();
 
+// Define allowed origins for both CORS and Socket.io
+const allowedOrigins = [
+  "http://localhost:5173", 
+  "https://ems-client-six.vercel.app" // Add your Vercel URL here
+];
+
 // --- SOCKET.IO SETUP ---
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173", // React App URL
-    methods: ["GET", "POST", "PUT", "DELETE"]
+    origin: allowedOrigins,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true
   }
 });
 
-// Make 'io' globally accessible to all controllers
 app.set("io", io);
 
 io.on("connection", (socket) => {
   console.log(`User connected to real-time socket: ${socket.id}`);
-  
   socket.on("disconnect", () => {
     console.log(`User disconnected: ${socket.id}`);
   });
@@ -41,23 +46,25 @@ io.on("connection", (socket) => {
 // -----------------------
 
 // Middleware
-app.use(cors());
+// Update CORS middleware to use the allowedOrigins list
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
 app.use(express.json());
 
 // Auth Routes
 app.use("/api/auth", authRoutes);
 
-// Users (Employees) API - Protected
+// Protected API Routes
 app.get("/api/users", protect, getUsers);
 app.put("/api/users/:id", protect, updateUser);
 app.delete("/api/users/:id", protect, deleteUser);
 
-// Departments API - Protected
 app.get("/api/departments", protect, getDepartments);
 app.post("/api/departments", protect, createDepartment);
 app.delete("/api/departments/:id", protect, deleteDepartment);
 
-// Leaves API - Protected
 app.get("/api/leaves", protect, getLeaves);
 app.post("/api/leaves", protect, createLeave);
 app.put("/api/leaves/:id", protect, updateLeaveStatus);
@@ -69,7 +76,6 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-// CRITICAL: We must listen on 'server', not 'app' now!
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
