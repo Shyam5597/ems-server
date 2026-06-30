@@ -10,13 +10,13 @@ const registerUser = async (req, res) => {
 
     // --- SECURE ROLE VALIDATION ---
     if (role === "MD/CEO") {
-      if (secretCode !== "EDVAC-CEO-2026") return res.status(400).json({ success: false, message: "Invalid Executive Access Code." });
+      if (secretCode !== "EDVAK-CEO-2026") return res.status(400).json({ success: false, message: "Invalid Executive Access Code." });
       department = "Executive";
       designation = "MD/CEO";
     } else if (role === "Admin") {
-      if (secretCode !== "EDVAC-MASTER-ADMIN") return res.status(400).json({ success: false, message: "Invalid Master Admin Key." });
+      if (secretCode !== "EDVAK-MASTER-ADMIN") return res.status(400).json({ success: false, message: "Invalid Master Admin Key." });
     } else if (role === "Employee") {
-      if (secretCode !== "EDVAC-EMP-2026") return res.status(400).json({ success: false, message: "Invalid Employee Access Code." });
+      if (secretCode !== "EDVAK-EMP-2026") return res.status(400).json({ success: false, message: "Invalid Employee Access Code." });
     } else {
       return res.status(400).json({ success: false, message: "Invalid Role Selected." });
     }
